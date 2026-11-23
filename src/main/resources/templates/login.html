@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>TodoApp - Connexion</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" th:href="@{/images/favicon.ico}">
+
+    <!-- Bootstrap + Bootstrap Icons -->
+    <link rel="stylesheet" th:href="@{/vendor/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/vendor/bootstrap-icons/bootstrap-icons.min.css}">
+
+    <!-- Feuille de style de l'application -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+<main class="container py-5 flex-grow-1">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <img th:src="@{/images/favicon.ico}" alt="TodoApp" width="48" height="48" class="mb-2">
+                        <h1 class="h4">Connexion</h1>
+                    </div>
+
+                    <!-- Alertes de connexion -->
+                    <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                        Adresse e-mail ou mot de passe incorrect.
+                    </div>
+                    <div th:if="${param.logout}" class="alert alert-info" role="alert">
+                        Vous avez été déconnecté.
+                    </div>
+
+                    <form th:action="@{/login}" method="post">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Adresse e-mail</label>
+                            <input id="username" name="username" type="email" class="form-control"
+                                   autocomplete="username" required autofocus>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Mot de passe</label>
+                            <input id="password" name="password" type="password" class="form-control"
+                                   autocomplete="current-password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

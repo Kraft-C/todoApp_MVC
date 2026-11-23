@@ -1,6 +1,5 @@
 package org.ldv.todoapp.controller
 
-import jakarta.servlet.http.HttpSession
 import org.ldv.todoapp.controller.form.TacheForm
 import org.ldv.todoapp.model.entity.Tache
 import org.ldv.todoapp.model.entity.Utilisateur
@@ -11,8 +10,9 @@ import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
-import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestAttribute
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
 
 @Controller
@@ -24,12 +24,11 @@ class MesTachesController(
     @GetMapping("/mes-taches")
     fun mesTaches(
         model: Model,
-        session: HttpSession
+        @RequestAttribute("utilisateurActif", required = false) utilisateurActif: Utilisateur?
     ): String {
 
         // Récupération de l'identifiant de l'utilisateur actif
-        val utilisateurId =
-            session.getAttribute("utilisateurId") as? Long
+        val utilisateurId = utilisateurActif?.idUtilisateur
 
         // Récupération des tâches de l'utilisateur actif
         val taches = if (utilisateurId != null) {
@@ -48,11 +47,11 @@ class MesTachesController(
     @GetMapping("/mes-taches/creer")
     fun formulaireCreation(
         model: Model,
-        session: HttpSession,
+        @RequestAttribute("utilisateurActif", required = false) utilisateurActif: Utilisateur?,
         redirectAttributes: RedirectAttributes
     ): String {
-        if (rechercherUtilisateurActif(session) == null) {
-            redirectAttributes.addFlashAttribute("messageErreur", "Sélectionnez un utilisateur avant de créer une tâche.")
+        if (utilisateurActif == null) {
+            redirectAttributes.addFlashAttribute("messageErreur", "Connectez-vous avant de créer une tâche.")
             return "redirect:/mes-taches"
         }
 
@@ -64,12 +63,12 @@ class MesTachesController(
     fun creerTache(
         @ModelAttribute("tacheForm") formulaire: TacheForm,
         bindingResult: BindingResult,
-        session: HttpSession,
+        @RequestAttribute("utilisateurActif", required = false) utilisateurActif: Utilisateur?,
         redirectAttributes: RedirectAttributes
     ): String {
-        val utilisateur = rechercherUtilisateurActif(session)
+        val utilisateur = utilisateurActif
         if (utilisateur == null) {
-            redirectAttributes.addFlashAttribute("messageErreur", "Sélectionnez un utilisateur avant de créer une tâche.")
+            redirectAttributes.addFlashAttribute("messageErreur", "Connectez-vous avant de créer une tâche.")
             return "redirect:/mes-taches"
         }
 
@@ -98,12 +97,12 @@ class MesTachesController(
     fun formulaireModification(
         @PathVariable("id") id: Long,
         model: Model,
-        session: HttpSession,
+        @RequestAttribute("utilisateurActif", required = false) utilisateurActif: Utilisateur?,
         redirectAttributes: RedirectAttributes
     ): String {
-        val utilisateur = rechercherUtilisateurActif(session)
+        val utilisateur = utilisateurActif
         if (utilisateur == null) {
-            redirectAttributes.addFlashAttribute("messageErreur", "Sélectionnez un utilisateur avant de modifier une tâche.")
+            redirectAttributes.addFlashAttribute("messageErreur", "Connectez-vous avant de modifier une tâche.")
             return "redirect:/mes-taches"
         }
 
@@ -131,12 +130,12 @@ class MesTachesController(
         @ModelAttribute("tacheForm") formulaire: TacheForm,
         bindingResult: BindingResult,
         model: Model,
-        session: HttpSession,
+        @RequestAttribute("utilisateurActif", required = false) utilisateurActif: Utilisateur?,
         redirectAttributes: RedirectAttributes
     ): String {
-        val utilisateur = rechercherUtilisateurActif(session)
+        val utilisateur = utilisateurActif
         if (utilisateur == null) {
-            redirectAttributes.addFlashAttribute("messageErreur", "Sélectionnez un utilisateur avant de modifier une tâche.")
+            redirectAttributes.addFlashAttribute("messageErreur", "Connectez-vous avant de modifier une tâche.")
             return "redirect:/mes-taches"
         }
 
@@ -170,12 +169,12 @@ class MesTachesController(
     fun confirmationSuppression(
         @PathVariable("id") id: Long,
         model: Model,
-        session: HttpSession,
+        @RequestAttribute("utilisateurActif", required = false) utilisateurActif: Utilisateur?,
         redirectAttributes: RedirectAttributes
     ): String {
-        val utilisateur = rechercherUtilisateurActif(session)
+        val utilisateur = utilisateurActif
         if (utilisateur == null) {
-            redirectAttributes.addFlashAttribute("messageErreur", "Sélectionnez un utilisateur avant de supprimer une tâche.")
+            redirectAttributes.addFlashAttribute("messageErreur", "Connectez-vous avant de supprimer une tâche.")
             return "redirect:/mes-taches"
         }
 
@@ -193,12 +192,12 @@ class MesTachesController(
     @PostMapping("/mes-taches/{id}/supprimer")
     fun supprimerTache(
         @PathVariable("id") id: Long,
-        session: HttpSession,
+        @RequestAttribute("utilisateurActif", required = false) utilisateurActif: Utilisateur?,
         redirectAttributes: RedirectAttributes
     ): String {
-        val utilisateur = rechercherUtilisateurActif(session)
+        val utilisateur = utilisateurActif
         if (utilisateur == null) {
-            redirectAttributes.addFlashAttribute("messageErreur", "Sélectionnez un utilisateur avant de supprimer une tâche.")
+            redirectAttributes.addFlashAttribute("messageErreur", "Connectez-vous avant de supprimer une tâche.")
             return "redirect:/mes-taches"
         }
 
@@ -222,14 +221,5 @@ class MesTachesController(
         } else if (formulaire.titre.length > 255) {
             bindingResult.rejectValue("titre", "titre.longueur", "Le titre ne doit pas dépasser 255 caractères.")
         }
-    }
-
-    private fun rechercherUtilisateurActif(session: HttpSession): Utilisateur? {
-        val utilisateurId = session.getAttribute("utilisateurId") as? Long ?: return null
-        val utilisateur = utilisateurRepository.findById(utilisateurId).orElse(null)
-        if (utilisateur == null) {
-            session.removeAttribute("utilisateurId")
-        }
-        return utilisateur
     }
 }
